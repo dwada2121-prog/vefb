@@ -97,33 +97,6 @@ DISCORD_LOGO = (
     + "</div>"
 )
 
-PAIR_CSS = """<style>
-.pair{position:relative;width:184px;height:72px;margin:0 auto 16px}
-.pair .pav{position:absolute;top:0;width:72px;height:72px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #404249;display:flex;align-items:center;justify-content:center;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff}
-.pair .srv{left:0}
-.pair .me{left:112px;background:#4e5058;image-rendering:auto;opacity:0;transform:scale(.6)}
-.pair .line{position:absolute;left:76px;top:34px;width:32px;height:4px;background:#3ba55d;transform-origin:left center;transform:scaleX(0)}
-.pair .badge{position:absolute;left:166px;top:50px;width:24px;height:24px;border-radius:50%;background:#3ba55d;border:3px solid #2b2d31;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.3)}
-.pair .badge svg{width:12px;height:12px}
-.pair.go .srv{animation:pairSrv .7s cubic-bezier(.65,0,.35,1) forwards,pairRing .4s ease 1.05s forwards}
-.pair.go .me{animation:pairMe .5s cubic-bezier(.34,1.56,.64,1) .6s forwards,pairRing .4s ease 1.05s forwards}
-.pair.go .line{animation:pairLine .4s ease-out .55s forwards}
-.pair.go .badge{animation:pairBadge .35s cubic-bezier(.34,1.56,.64,1) 1.15s forwards}
-@keyframes pairSrv{from{transform:translateX(56px)}to{transform:translateX(0)}}
-@keyframes pairLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes pairMe{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-@keyframes pairBadge{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
-@keyframes pairRing{from{border-color:#404249}to{border-color:#3ba55d}}
-@media (prefers-reduced-motion: reduce) {
-  .pair *{animation:none!important}
-  .pair.go .me{opacity:1!important;transform:scale(1)!important}
-  .pair.go .line{transform:scaleX(1)!important}
-  .pair.go .badge{opacity:1!important;transform:scale(1)!important}
-}
-</style>"""
-
-CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
-
 BASE_HTML = """<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -274,10 +247,6 @@ def render(title, body, status=200, script=""):
         "setTimeout(function(){"
         "document.getElementById('loader').classList.add('hide');"
         "document.getElementById('content').classList.add('show');"
-        "setTimeout(function(){"
-        "var p=document.querySelector('.pair');"
-        "if(p)p.classList.add('go');"
-        "},450);"
         "},1800);"
     )
     text = (
@@ -295,17 +264,11 @@ def message_page(title, text, status=200):
 
 def success_page(guild, member, restore_count):
     if guild.icon:
-        server = f'<img class="pav srv" src="{html.escape(str(guild.icon.url))}" alt="" style="image-rendering:auto">'
+        icon = f'<img class="icon" src="{html.escape(str(guild.icon.url))}" alt="">'
     else:
-        server = f'<div class="pav srv">{html.escape(guild.name[:1])}</div>'
-    avatar = html.escape(str(member.display_avatar.url))
-    body = PAIR_CSS + f"""
-<div class="pair">
-{server}
-<div class="line"></div>
-<img class="pav me" src="{avatar}" alt="" style="image-rendering:auto">
-<div class="badge">{CHECK_SVG}</div>
-</div>
+        icon = f'<div class="fallback">{html.escape(guild.name[:1])}</div>'
+    body = f"""
+{icon}
 <h1>인증 완료</h1>
 <p class="sub">{html.escape(guild.name)}</p>
 <div class="info">
