@@ -99,22 +99,31 @@ DISCORD_LOGO = (
 
 PAIR_CSS = """<style>
 .pair{position:relative;width:184px;height:72px;margin:0 auto 16px}
-.pair .pav{position:absolute;top:0;width:72px;height:72px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #3ba55d;display:flex;align-items:center;justify-content:center;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff}
+.pair .pav{position:absolute;top:0;width:72px;height:72px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #404249;display:flex;align-items:center;justify-content:center;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff}
 .pair .srv{left:0}
-.pair .me{left:112px;background:#4e5058;image-rendering:auto}
-.pair .line{position:absolute;left:76px;top:34px;width:32px;height:4px;background:#3ba55d;transform-origin:left center}
-.pair .badge{position:absolute;left:166px;top:50px;width:24px;height:24px;border-radius:50%;background:#3ba55d;border:3px solid #2b2d31;display:flex;align-items:center;justify-content:center}
+.pair .me{left:112px;background:#4e5058;image-rendering:auto;opacity:0;transform:scale(.6)}
+.pair .line{position:absolute;left:76px;top:34px;width:32px;height:4px;background:#3ba55d;transform-origin:left center;transform:scaleX(0)}
+.pair .badge{position:absolute;left:166px;top:50px;width:24px;height:24px;border-radius:50%;background:#3ba55d;border:3px solid #2b2d31;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.3)}
 .pair .badge svg{width:12px;height:12px}
-#content.show .pair .srv{animation:pairSrv .7s cubic-bezier(.65,0,.35,1) .4s backwards,pairRing .4s ease 1.45s backwards}
-#content.show .pair .line{animation:pairLine .4s ease-out .95s backwards}
-#content.show .pair .me{animation:pairMe .5s cubic-bezier(.34,1.56,.64,1) 1s backwards,pairRing .4s ease 1.45s backwards}
-#content.show .pair .badge{animation:pairBadge .35s cubic-bezier(.34,1.56,.64,1) 1.55s backwards}
-@keyframes pairSrv{from{transform:translateX(56px)}}
-@keyframes pairLine{from{transform:scaleX(0)}}
-@keyframes pairMe{from{opacity:0;transform:scale(.6)}}
-@keyframes pairBadge{from{opacity:0;transform:scale(.3)}}
-@keyframes pairRing{from{border-color:#404249}}
-@media (prefers-reduced-motion:reduce){.pair *{animation:none!important}}
+.pair.go .srv{animation:pairSrv .7s cubic-bezier(.65,0,.35,1) forwards}
+.pair.go .line{animation:pairLine .4s ease-out .55s forwards}
+.pair.go .me{animation:pairMe .5s cubic-bezier(.34,1.56,.64,1) .6s forwards}
+.pair.go .srv,.pair.go .me{animation-name:pairSrv,pairRing;animation-duration:.7s,.4s;animation-delay:0s,1.05s;animation-fill-mode:forwards,forwards;animation-timing-function:cubic-bezier(.65,0,.35,1),ease}
+.pair.go .me{animation-name:pairMe,pairRing;animation-duration:.5s,.4s;animation-delay:.6s,1.05s;animation-fill-mode:forwards,forwards;animation-timing-function:cubic-bezier(.34,1.56,.64,1),ease}
+.pair.go .line{animation:pairLine .4s ease-out .55s forwards}
+.pair.go .badge{animation:pairBadge .35s cubic-bezier(.34,1.56,.64,1) 1.15s forwards}
+@keyframes pairSrv{from{transform:translateX(56px)}to{transform:translateX(0)}}
+@keyframes pairLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pairMe{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes pairBadge{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes pairRing{from{border-color:#404249}to{border-color:#3ba55d}}
+@media (prefers-reduced-motion:reduce){
+  .pair .me{opacity:1;transform:none}
+  .pair .line{transform:none}
+  .pair .badge{opacity:1;transform:none}
+  .pair .pav{border-color:#3ba55d}
+  .pair *{animation:none!important}
+}
 </style>"""
 
 CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
@@ -269,6 +278,10 @@ def render(title, body, status=200, script=""):
         "setTimeout(function(){"
         "document.getElementById('loader').classList.add('hide');"
         "document.getElementById('content').classList.add('show');"
+        "setTimeout(function(){"
+        "var p=document.querySelector('.pair');"
+        "if(p)p.classList.add('go');"
+        "},450);"
         "},1800);"
     )
     text = (
