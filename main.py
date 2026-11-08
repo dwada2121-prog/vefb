@@ -105,23 +105,25 @@ PAIR_CSS = """<style>
 .pair .line{position:absolute;left:76px;top:34px;width:32px;height:4px;background:#3ba55d;transform-origin:left center;transform:scaleX(0)}
 .pair .badge{position:absolute;left:166px;top:50px;width:24px;height:24px;border-radius:50%;background:#3ba55d;border:3px solid #2b2d31;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.3)}
 .pair .badge svg{width:12px;height:12px}
-.pair.go .srv{animation:pairSrv .7s cubic-bezier(.65,0,.35,1) forwards}
-.pair.go .line{animation:pairLine .4s ease-out .55s forwards}
-.pair.go .me{animation:pairMe .5s cubic-bezier(.34,1.56,.64,1) .6s forwards}
-.pair.go .srv,.pair.go .me{animation-name:pairSrv,pairRing;animation-duration:.7s,.4s;animation-delay:0s,1.05s;animation-fill-mode:forwards,forwards;animation-timing-function:cubic-bezier(.65,0,.35,1),ease}
-.pair.go .me{animation-name:pairMe,pairRing;animation-duration:.5s,.4s;animation-delay:.6s,1.05s;animation-fill-mode:forwards,forwards;animation-timing-function:cubic-bezier(.34,1.56,.64,1),ease}
+
+.pair.go .srv{
+  animation:
+    pairSrv .7s cubic-bezier(.65,0,.35,1) forwards,
+    pairRing .4s ease 1.05s forwards;
+}
+.pair.go .me{
+  animation:
+    pairMe .5s cubic-bezier(.34,1.56,.64,1) .6s forwards,
+    pairRing .4s ease 1.05s forwards;
+}
 .pair.go .line{animation:pairLine .4s ease-out .55s forwards}
 .pair.go .badge{animation:pairBadge .35s cubic-bezier(.34,1.56,.64,1) 1.15s forwards}
+
 @keyframes pairSrv{from{transform:translateX(56px)}to{transform:translateX(0)}}
 @keyframes pairLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes pairMe{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 @keyframes pairBadge{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
 @keyframes pairRing{from{border-color:#404249}to{border-color:#3ba55d}}
-@media (prefers-reduced-motion:reduce){
-  .pair .me{opacity:1;transform:none}
-  .pair .line{transform:none}
-  .pair .badge{opacity:1;transform:none}
-  .pair .pav{border-color:#3ba55d}
   .pair *{animation:none!important}
 }
 </style>"""
