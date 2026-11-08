@@ -75,22 +75,27 @@ BASE_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css">
 <title>__TITLE__</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1e1f22;color:#f2f3f5;font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif;padding:16px}
-.card{width:100%;max-width:460px;background:#2b2d31;border-radius:12px;padding:32px 28px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-h1{margin:0 0 12px;font-size:22px}
-p{margin:0 0 14px;line-height:1.6;color:#b5bac1;font-size:15px}
-ul{margin:0 0 16px;padding-left:20px;color:#b5bac1;line-height:1.8;font-size:14px}
-button{display:block;width:100%;border:0;border-radius:8px;background:#5865f2;color:#fff;font-size:16px;font-weight:600;padding:13px;cursor:pointer}
-button:hover{background:#4752c4}
-.ok{color:#23a55a}
-.bad{color:#f23f42}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#313338;color:#f2f3f5;font-family:Galmuri11,"gg sans","Noto Sans KR","Malgun Gothic",sans-serif;font-size:12px;padding:16px}
+.card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 16px rgba(0,0,0,.24)}
+.logo{display:block;width:40px;height:auto;margin:0 auto 18px}
+.icon{display:block;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2}
+.fallback{display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:#5865f2;font-family:Galmuri14,Galmuri11,sans-serif;font-size:15px;color:#fff}
+h1{margin:0 0 8px;font-family:Galmuri14,Galmuri11,sans-serif;font-size:15px;font-weight:400;color:#fff}
+p{margin:0 0 18px;line-height:1.6;color:#b5bac1;font-size:12px}
+.user{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 20px;padding:8px 10px;background:#1e1f22;border-radius:6px;font-size:12px;color:#dbdee1}
+.user img{width:20px;height:20px;border-radius:50%}
+.btn{display:block;width:100%;padding:10px;border-radius:3px;background:#5865f2;color:#fff;font-size:12px;text-decoration:none}
+.btn:hover{background:#4752c4}
+.made{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-family:Galmuri9,Galmuri11,sans-serif;font-size:10px;color:#fff;opacity:.3;pointer-events:none}
 </style>
 </head>
 <body>
 <div class="card">__BODY__</div>
+<div class="made">Made By Kill</div>
 </body>
 </html>"""
 
@@ -197,15 +202,31 @@ def client_ip(request):
     return ip or request.remote or "unknown"
 
 
+DISCORD_LOGO = '<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 126.644 96"><path fill="#fff" d="M81.15,0c-1.2376,2.1973-2.3489,4.4704-3.3591,6.794-9.5975-1.4396-19.3718-1.4396-28.9945,0-.985-2.3236-2.1216-4.5967-3.3591-6.794-9.0166,1.5407-17.8059,4.2431-26.1405,8.0568C2.779,32.5304-1.6914,56.3725.5312,79.8863c9.6732,7.1476,20.5083,12.603,32.0505,16.0884,2.6014-3.4854,4.8998-7.1981,6.8698-11.0623-3.738-1.3891-7.3497-3.1318-10.8098-5.1523.9092-.6567,1.7932-1.3386,2.6519-1.9953,20.281,9.547,43.7696,9.547,64.0758,0,.8587.7072,1.7427,1.3891,2.6519,1.9953-3.4601,2.0457-7.0718,3.7632-10.835,5.1776,1.97,3.8642,4.2683,7.5769,6.8698,11.0623,11.5419-3.4854,22.3769-8.9156,32.0509-16.0631,2.626-27.2771-4.496-50.9172-18.817-71.8548C98.9811,4.2684,90.1918,1.5659,81.1752.0505l-.0252-.0505ZM42.2802,65.4144c-6.2383,0-11.4159-5.6575-11.4159-12.6535s4.9755-12.6788,11.3907-12.6788,11.5169,5.708,11.4159,12.6788c-.101,6.9708-5.026,12.6535-11.3907,12.6535ZM84.3576,65.4144c-6.2637,0-11.3907-5.6575-11.3907-12.6535s4.9755-12.6788,11.3907-12.6788,11.4917,5.708,11.3906,12.6788c-.101,6.9708-5.026,12.6535-11.3906,12.6535Z"/></svg>'
+
+
 def render(title, body, status=200):
-    text = BASE_HTML.replace("__TITLE__", html.escape(title)).replace("__BODY__", body)
+    text = BASE_HTML.replace("__TITLE__", html.escape(title)).replace("__BODY__", DISCORD_LOGO + body)
     return web.Response(text=text, content_type="text/html", status=status)
 
 
-def message_page(title, text, good=False, status=200):
-    css = "ok" if good else "bad"
-    body = f'<h1 class="{css}">{html.escape(title)}</h1><p>{html.escape(text)}</p>'
-    return render(title, body, status)
+def message_page(title, text, good=False, status=200, guild=None, member=None, button=False):
+    parts = []
+    if guild is not None:
+        if guild.icon:
+            parts.append(f'<img class="icon" src="{html.escape(guild.icon.url)}" alt="">')
+        else:
+            parts.append(f'<div class="fallback">{html.escape(guild.name[:1])}</div>')
+    parts.append(f"<h1>{html.escape(title)}</h1>")
+    parts.append(f"<p>{html.escape(text)}</p>")
+    if member is not None:
+        parts.append(
+            f'<div class="user"><img src="{html.escape(member.display_avatar.url)}" alt="">'
+            f"<span>{html.escape(member.display_name)}</span></div>"
+        )
+    if button and guild is not None:
+        parts.append(f'<a class="btn" href="https://discord.com/channels/{guild.id}">Discord로 돌아가기</a>')
+    return render(title, "".join(parts), status)
 
 
 async def health(request):
@@ -360,8 +381,15 @@ async def callback(request):
         return message_page("오류", "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", status=500)
 
     if status == "ok":
-        return message_page("인증 완료", "인증이 완료되었습니다. 이 창은 닫아도 됩니다.", good=True)
-    return message_page("인증 거부", "같은 IP로 이미 인증된 계정이 있어 인증이 거부되었습니다.", status=403)
+        return message_page(
+            "인증 완료",
+            "인증이 완료되었습니다. 이제 서버를 이용하실 수 있어요.",
+            good=True,
+            guild=guild,
+            member=member,
+            button=True,
+        )
+    raise web.HTTPFound("https://discord.com/channels/@me")
 
 
 def build_log_view(member, info):
@@ -466,9 +494,6 @@ def build_verify_view(guild_id):
     text = (
         "**서버 인증**\n\n"
         "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
-        "인증 과정에서 Discord 계정 정보(이메일 포함), 접속 IP, 기기 정보가 "
-        "서버 관리자에게 전달되며, 서버 복구를 위한 서버 참가 권한이 보관됩니다.\n"
-        "같은 IP로 이미 인증된 계정이 있으면 인증이 거부되고 추방됩니다."
     )
     view = discord.ui.LayoutView(timeout=None)
     view.add_item(
