@@ -1,9 +1,7 @@
-```python
 import asyncio
 import html
 import os
 import re
-import secrets
 import time
 from io import BytesIO
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -27,7 +25,6 @@ LOG_CHANNEL_NAME = "인증로그"
 VERIFIED_ROLE_NAME = "인증됨"
 RESTORE_COMMAND = ".복원"
 SETUP_COMMAND = ".인증설정"
-STATE_TTL = 600
 RESTORE_DELAY = 1.0
 ADMIN_PERM = 0x8
 
@@ -77,41 +74,57 @@ BASE_HTML = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#313338">
-<meta name="supported-color-schemes" content="dark">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css">
 <title>__TITLE__</title>
 <style>
 :root{color-scheme:dark}
-*{box-sizing:border-box}
-html{color-scheme:dark;background:#313338}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#313338;color:#f2f3f5;font-family:Galmuri11,"gg sans","Noto Sans KR","Malgun Gothic",sans-serif;font-size:12px;padding:16px}
-.card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 16px rgba(0,0,0,.24)}
-.logo-spin{position:relative;width:40px;height:40px;margin:0 auto 18px}
-.logo-spin svg{position:absolute;top:0;left:0;width:40px;height:40px;transform-origin:50% 50%;animation:logoSpin 2.6s cubic-bezier(.3,.9,.25,1) infinite}
-.logo-spin .t1{opacity:.35;filter:blur(1.5px);animation-delay:-.045s}
-.logo-spin .t2{opacity:.2;filter:blur(3px);animation-delay:-.09s}
-.logo-spin .t3{opacity:.1;filter:blur(4.5px);animation-delay:-.135s}
-@keyframes logoSpin{
-0%{transform:rotate(0deg)}
-32%{transform:rotate(382deg)}
-42%{transform:rotate(344deg)}
-50%{transform:rotate(360deg)}
-100%{transform:rotate(360deg)}
-}
-.icon{display:block;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2}
-.fallback{display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:#5865f2;font-family:Galmuri14,Galmuri11,sans-serif;font-size:15px;color:#fff}
-h1{margin:0 0 8px;font-family:Galmuri14,Galmuri11,sans-serif;font-size:15px;font-weight:400;color:#fff}
-p{margin:0 0 18px;line-height:1.6;color:#b5bac1;font-size:12px}
-.user{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 20px;padding:8px 10px;background:#1e1f22;border-radius:6px;font-size:12px;color:#dbdee1}
-.user img{width:20px;height:20px;border-radius:50%}
-.btn{display:block;width:100%;padding:10px;border-radius:3px;background:#5865f2;color:#fff;font-size:12px;text-decoration:none}
+*{box-sizing:border-box;image-rendering:pixelated}
+html{color-scheme:dark;background:#1a1b1e}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1a1b1e;color:#f2f3f5;font-family:Galmuri11,"gg sans","Noto Sans KR",sans-serif;font-size:12px;padding:16px}
+.card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 16px rgba(0,0,0,.4);position:relative;overflow:hidden}
+.icon{display:block;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #404249}
+.fallback{display:flex;align-items:center;justify-content:center;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:#5865f2;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff;border:3px solid #404249}
+h1{margin:0 0 6px;font-family:Galmuri14,sans-serif;font-size:16px;font-weight:400;color:#fff}
+.sub{margin:0 0 14px;color:#b5bac1;font-size:12px;line-height:1.5}
+.info{background:#1e1f22;border-radius:6px;padding:12px;margin:0 0 16px;text-align:left;font-size:11px;color:#dbdee1;line-height:1.7}
+.info b{color:#fff}
+.btn{display:block;width:100%;padding:11px;border-radius:3px;background:#5865f2;color:#fff;font-size:12px;text-decoration:none;font-family:Galmuri11,sans-serif}
 .btn:hover{background:#4752c4}
-.made{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-family:Galmuri9,Galmuri11,sans-serif;font-size:10px;color:#fff;opacity:.3;pointer-events:none}
+.made{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-family:Galmuri9,sans-serif;font-size:10px;color:#fff;opacity:.25;pointer-events:none}
+#loader{position:absolute;inset:0;background:#1a1b1e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;transition:opacity .4s}
+#loader.hide{opacity:0;pointer-events:none}
+.pixel-spin{width:48px;height:48px;margin-bottom:18px;background:
+linear-gradient(#5865f2 50%,transparent 50%) 0 0/50% 50%,
+linear-gradient(#5865f2 50%,transparent 50%) 100% 0/50% 50%,
+linear-gradient(#5865f2 50%,transparent 50%) 0 100%/50% 50%,
+linear-gradient(#5865f2 50%,transparent 50%) 100% 100%/50% 50%;
+background-repeat:no-repeat;animation:pixelSpin .6s steps(2) infinite}
+@keyframes pixelSpin{0%{transform:rotate(0)}100%{transform:rotate(90deg)}}
+.load-text{font-family:Galmuri11,sans-serif;font-size:13px;color:#fff;letter-spacing:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0.3}}
+.bar{width:120px;height:8px;background:#2b2d31;margin-top:14px;border:2px solid #404249;position:relative;overflow:hidden}
+.bar::after{content:"";position:absolute;left:0;top:0;height:100%;width:40%;background:#5865f2;animation:loadBar 1.1s steps(8) infinite}
+@keyframes loadBar{0%{left:-40%}100%{left:100%}}
+#content{opacity:0;transition:opacity .45s}
+#content.show{opacity:1}
 </style>
 </head>
 <body>
-<div class="card">__BODY__</div>
+<div class="card">
+<div id="loader">
+<div class="pixel-spin"></div>
+<div class="load-text">LOADING</div>
+<div class="bar"></div>
+</div>
+<div id="content">__BODY__</div>
+</div>
 <div class="made">Made By Kill</div>
+<script>
+setTimeout(function(){
+document.getElementById("loader").classList.add("hide");
+document.getElementById("content").classList.add("show");
+},1800);
+</script>
 </body>
 </html>"""
 
@@ -140,7 +153,6 @@ intents.members = True
 intents.message_content = True
 pool = None
 http = None
-pending = {}
 restoring = set()
 ready_done = False
 
@@ -209,41 +221,33 @@ def client_ip(request):
         ip = forwarded.split(",")[0].strip() if forwarded else None
     return ip or request.remote or "unknown"
 
-LOGO_PATH = '<path fill="#fff" d="M81.15,0c-1.2376,2.1973-2.3489,4.4704-3.3591,6.794-9.5975-1.4396-19.3718-1.4396-28.9945,0-.985-2.3236-2.1216-4.5967-3.3591-6.794-9.0166,1.5407-17.8059,4.2431-26.1405,8.0568C2.779,32.5304-1.6914,56.3725.5312,79.8863c9.6732,7.1476,20.5083,12.603,32.0505,16.0884,2.6014-3.4854,4.8998-7.1981,6.8698-11.0623-3.738-1.3891-7.3497-3.1318-10.8098-5.1523.9092-.6567,1.7932-1.3386,2.6519-1.9953,20.281,9.547,43.7696,9.547,64.0758,0,.8587.7072,1.7427,1.3891,2.6519,1.9953-3.4601,2.0457-7.0718,3.7632-10.835,5.1776,1.97,3.8642,4.2683,7.5769,6.8698,11.0623,11.5419-3.4854,22.3769-8.9156,32.0509-16.0631,2.626-27.2771-4.496-50.9172-18.817-71.8548C98.9811,4.2684,90.1918,1.5659,81.1752.0505l-.0252-.0505ZM42.2802,65.4144c-6.2383,0-11.4159-5.6575-11.4159-12.6535s4.9755-12.6788,11.3907-12.6788,11.5169,5.708,11.4159,12.6788c-.101,6.9708-5.026,12.6535-11.3907,12.6535ZM84.3576,65.4144c-6.2637,0-11.3907-5.6575-11.3907-12.6535s4.9755-12.6788,11.3907-12.6788,11.4917,5.708,11.3906,12.6788c-.101,6.9708-5.026,12.6535-11.3906,12.6535Z"/>'
-
-def logo_layer(class_name):
-    return f'<svg class="{class_name}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 126.644 96">{LOGO_PATH}</svg>'
-
-DISCORD_LOGO = (
-    '<div class="logo-spin">'
-    + logo_layer("t3")
-    + logo_layer("t2")
-    + logo_layer("t1")
-    + logo_layer("main")
-    + "</div>"
-)
-
 def render(title, body, status=200):
-    text = BASE_HTML.replace("__TITLE__", html.escape(title)).replace("__BODY__", DISCORD_LOGO + body)
+    text = BASE_HTML.replace("__TITLE__", html.escape(title)).replace("__BODY__", body)
     return web.Response(text=text, content_type="text/html", status=status)
 
-def message_page(title, text, good=False, status=200, guild=None, member=None, button=False):
-    parts = []
-    if guild is not None:
-        if guild.icon:
-            parts.append(f'<img class="icon" src="{html.escape(guild.icon.url)}" alt="">')
-        else:
-            parts.append(f'<div class="fallback">{html.escape(guild.name[:1])}</div>')
-    parts.append(f"<h1>{html.escape(title)}</h1>")
-    parts.append(f"<p>{html.escape(text)}</p>")
-    if member is not None:
-        parts.append(
-            f'<div class="user"><img src="{html.escape(member.display_avatar.url)}" alt="">'
-            f"<span>{html.escape(member.display_name)}</span></div>"
-        )
-    if button and guild is not None:
-        parts.append(f'<a class="btn" href="https://discord.com/channels/{guild.id}">Discord로 돌아가기</a>')
-    return render(title, "".join(parts), status)
+def message_page(title, text, status=200):
+    body = f"<h1>{html.escape(title)}</h1><p class='sub'>{html.escape(text)}</p>"
+    return render(title, body, status)
+
+def success_page(guild, member, restore_count):
+    if guild.icon:
+        icon = f'<img class="icon" src="{html.escape(guild.icon.url)}" alt="">'
+    else:
+        icon = f'<div class="fallback">{html.escape(guild.name[:1])}</div>'
+    now = discord.utils.format_dt(discord.utils.utcnow(), "F")
+    body = f"""
+{icon}
+<h1>인증 완료</h1>
+<p class="sub">{html.escape(guild.name)}</p>
+<div class="info">
+<b>역할</b> · 인증됨 역할이 지급되었습니다<br>
+<b>복구 가능 인원</b> · {restore_count}명<br>
+<b>인증 시각</b> · {now}<br>
+<b>유저</b> · {html.escape(member.display_name)}
+</div>
+<a class="btn" href="https://discord.com/channels/{guild.id}">서버로 돌아가기</a>
+"""
+    return render("인증 완료", body)
 
 async def health(request):
     return web.Response(text="ok")
@@ -453,14 +457,7 @@ async def callback(request):
         print(f"[callback] {exc!r}")
         return message_page("오류", "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", status=500)
     if status == "ok":
-        return message_page(
-            "인증 완료",
-            "인증이 완료되었습니다. 이제 서버를 이용하실 수 있어요. 이 창은 닫아도 됩니다",
-            good=True,
-            guild=guild,
-            member=member,
-            button=True,
-        )
+        return success_page(guild, member, restore_count or 0)
     raise web.HTTPFound("https://discord.com/channels/@me")
 
 def build_log_view(member, info):
@@ -711,6 +708,7 @@ async def handle_restore(message):
                     pass
             await asyncio.sleep(RESTORE_DELAY)
         text = f"복원 완료\n성공 {added}명 / 실패 {len(failed)}명"
+        if
         if failed:
             lines = [f"<@{uid}> `{uid}` - {reason}" for uid, reason in failed[:15]]
             text += "\n" + "\n".join(lines)
@@ -760,4 +758,3 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
-```
