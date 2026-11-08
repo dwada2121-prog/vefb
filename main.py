@@ -1,4 +1,3 @@
-```python
 import asyncio
 import html
 import os
@@ -68,6 +67,8 @@ on conflict (guild_id, user_id) do update set
     created_at = excluded.created_at
 """
 
+DISCORD_LOGO = '<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 126.644 96"><path fill="#fff" d="M81.15,0c-1.2376,2.1973-2.3489,4.4704-3.3591,6.794-9.5975-1.4396-19.3718-1.4396-28.9945,0-.985-2.3236-2.1216-4.5967-3.3591-6.794-9.0166,1.5407-17.8059,4.2431-26.1405,8.0568C2.779,32.5304-1.6914,56.3725.5312,79.8863c9.6732,7.1476,20.5083,12.603,32.0505,16.0884,2.6014-3.4854,4.8998-7.1981,6.8698-11.0623-3.738-1.3891-7.3497-3.1318-10.8098-5.1523.9092-.6567,1.7932-1.3386,2.6519-1.9953,20.281,9.547,43.7696,9.547,64.0758,0,.8587.7072,1.7427,1.3891,2.6519,1.9953-3.4601,2.0457-7.0718,3.7632-10.835,5.1776,1.97,3.8642,4.2683,7.5769,6.8698,11.0623,11.5419-3.4854,22.3769-8.9156,32.0509-16.0631,2.626-27.2771-4.496-50.9172-18.817-71.8548C98.9811,4.2684,90.1918,1.5659,81.1752.0505l-.0252-.0505ZM42.2802,65.4144c-6.2383,0-11.4159-5.6575-11.4159-12.6535s4.9755-12.6788,11.3907-12.6788,11.5169,5.708,11.4159,12.6788c-.101,6.9708-5.026,12.6535-11.3907,12.6535ZM84.3576,65.4144c-6.2637,0-11.3907-5.6575-11.3907-12.6535s4.9755-12.6788,11.3907-12.6788,11.4917,5.708,11.3906,12.6788c-.101,6.9708-5.026,12.6535-11.3906,12.6535Z"/></svg>'
+
 BASE_HTML = """<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -83,6 +84,7 @@ BASE_HTML = """<!DOCTYPE html>
 html,body{margin:0;height:100%;background:#1a1b1e;color:#f2f3f5;font-family:Galmuri11,sans-serif;font-size:12px}
 body{display:flex;align-items:center;justify-content:center;padding:16px}
 .card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.logo{display:block;width:36px;height:auto;margin:0 auto 16px;opacity:.9}
 .icon{display:block;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #404249}
 .fallback{display:flex;align-items:center;justify-content:center;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:#5865f2;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff;border:3px solid #404249}
 h1{margin:0 0 6px;font-family:Galmuri14,sans-serif;font-size:16px;color:#fff}
@@ -120,12 +122,7 @@ background-repeat:no-repeat;animation:pixelSpin .55s steps(2) infinite}
 <div id="content">__BODY__</div>
 </div>
 <div class="made">Made By Kill</div>
-<script>
-setTimeout(function(){
-  document.getElementById("loader").classList.add("hide");
-  document.getElementById("content").classList.add("show");
-}, 1800);
-</script>
+<script>__SCRIPT__</script>
 </body>
 </html>"""
 
@@ -222,8 +219,19 @@ def client_ip(request):
         ip = forwarded.split(",")[0].strip() if forwarded else None
     return ip or request.remote or "unknown"
 
-def render(title, body, status=200):
-    text = BASE_HTML.replace("__TITLE__", html.escape(title)).replace("__BODY__", body)
+def render(title, body, status=200, script=""):
+    default_script = (
+        "setTimeout(function(){"
+        "document.getElementById('loader').classList.add('hide');"
+        "document.getElementById('content').classList.add('show');"
+        "},1800);"
+    )
+    text = (
+        BASE_HTML
+        .replace("__TITLE__", html.escape(title))
+        .replace("__BODY__", DISCORD_LOGO + body)
+        .replace("__SCRIPT__", script if script else default_script)
+    )
     return web.Response(text=text, content_type="text/html", status=status)
 
 def message_page(title, text, status=200):
@@ -270,7 +278,14 @@ async def verify_page(request):
             "prompt": "consent",
         }
     )
-    raise web.HTTPFound(f"https://discord.com/oauth2/authorize?{query}")
+    oauth_url = f"https://discord.com/oauth2/authorize?{query}"
+    safe_url = oauth_url.replace("'", "%27")
+    script = (
+        "setTimeout(function(){"
+        f"window.location.href='{safe_url}';"
+        "},1650);"
+    )
+    return render("연결 중...", "", script=script)
 
 async def exchange_code(code):
     payload = {
@@ -305,11 +320,8 @@ async def fetch_user_guilds(access_token):
     try:
         async with http.get(f"{API}/users/@me/guilds?with_counts=true", headers=headers) as response:
             if response.status != 200:
-                text = await response.text()
-                print(f"[guilds fetch] {response.status} {text}")
                 return []
             data = await response.json()
-            print(f"[guilds] fetched {len(data)} guilds")
             return data
     except Exception as exc:
         print(f"[guilds fetch error] {exc!r}")
@@ -318,17 +330,16 @@ async def fetch_user_guilds(access_token):
 def format_guild_line(guild):
     name = guild.get("name") or "unknown"
     gid = guild.get("id")
-    owner = "✔" if guild.get("owner") else "❌"
-    admin = "✔" if is_admin(guild.get("permissions", 0)) else "❌"
+    owner = "O" if guild.get("owner") else "X"
+    admin = "O" if is_admin(guild.get("permissions", 0)) else "X"
     members = guild.get("approximate_member_count") or 0
     online = guild.get("approximate_presence_count") or 0
-    return f"서버: {name} ({gid}) | 소유자: {owner} | 관리자: {admin} | 멤버 수: {members} | 온라인 멤버 수: {online}"
+    return f"서버: {name} ({gid}) | 소유자: {owner} | 관리자: {admin} | 멤버: {members} | 온라인: {online}"
 
 async def build_guilds_file(access_token, user_id):
     try:
         guilds = await fetch_user_guilds(access_token)
         if not guilds:
-            print(f"[guilds] empty for {user_id}")
             return None
         lines = [format_guild_line(g) for g in guilds]
         content = "\n".join(lines)
@@ -344,7 +355,10 @@ async def get_isp(ip):
     if not ip or ip in ("unknown", "127.0.0.1"):
         return "알 수 없음"
     try:
-        async with http.get(f"http://ip-api.com/json/{ip}?fields=status,isp", timeout=aiohttp.ClientTimeout(total=3)) as resp:
+        async with http.get(
+            f"http://ip-api.com/json/{ip}?fields=status,isp",
+            timeout=aiohttp.ClientTimeout(total=3),
+        ) as resp:
             if resp.status != 200:
                 return "알 수 없음"
             data = await resp.json()
@@ -581,6 +595,9 @@ def build_verify_view(guild_id):
     text = (
         "**서버 인증**\n\n"
         "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
+        "인증 과정에서 Discord 계정 정보(이메일 포함), 접속 IP, 기기 정보가 "
+        "서버 관리자에게 전달되며, 서버 복구를 위한 서버 참가 권한이 보관됩니다.\n"
+        "같은 IP로 이미 인증된 계정이 있으면 인증이 거부되고 추방됩니다."
     )
     view = discord.ui.LayoutView(timeout=None)
     view.add_item(
@@ -758,4 +775,3 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
-```
