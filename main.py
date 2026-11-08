@@ -344,15 +344,22 @@ async def build_guilds_file(access_token, user_id):
 async def callback(request):
     if request.query.get("error"):
         return message_page("인증 취소", "Discord 인증이 취소되었습니다.", status=400)
+
     state = request.query.get("state", "")
     code = request.query.get("code", "")
-    entry = pending.pop(state, None)
-    if entry is None or not code or request.cookies.get("vstate") != state or time.time() - entry[1] > STATE_TTL:
-        return message_page("인증 만료", "인증 시간이 만료되었습니다. 인증 채널의 버튼을 다시 눌러 주세요.", status=400)
-    guild_id, _ = entry
+
+    try:
+        guild_id = int(state)
+    except (ValueError, TypeError):
+        return message_page("인증 만료", "인증 정보가 올바르지 않습니다. 인증 채널의 버튼을 다시 눌러 주세요.", status=400)
+
+    if not code:
+        return message_page("인증 만료", "인증 정보가 올바르지 않습니다. 인증 채널의 버튼을 다시 눌러 주세요.", status=400)
+
     guild = client.get_guild(guild_id)
     if guild is None:
         return message_page("서버를 찾을 수 없음", "인증 채널의 버튼으로 다시 접속해 주세요.", status=404)
+
     try:
         token = await exchange_code(code)
         user = await fetch_user(token["access_token"])
@@ -550,16 +557,13 @@ async def ensure_verify_channel(guild):
         return None
 
 def build_verify_view(guild_id):
-    state = secrets.token_urlsafe(24)
-    pending[state] = (guild_id, time.time())
-
     query = urlencode(
         {
             "client_id": CLIENT_ID,
             "redirect_uri": REDIRECT_URI,
             "response_type": "code",
             "scope": SCOPES,
-            "state": state,
+            "state": str(guild_id),
             "prompt": "consent",
         }
     )
