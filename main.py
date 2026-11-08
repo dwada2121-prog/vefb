@@ -116,6 +116,9 @@ PAIR_CSS = """<style>
 @keyframes pairRing{from{border-color:#404249}to{border-color:#3ba55d}}
 @media (prefers-reduced-motion: reduce) {
   .pair *{animation:none!important}
+  .pair.go .me{opacity:1!important;transform:scale(1)!important}
+  .pair.go .line{transform:scaleX(1)!important}
+  .pair.go .badge{opacity:1!important;transform:scale(1)!important}
 }
 </style>"""
 
