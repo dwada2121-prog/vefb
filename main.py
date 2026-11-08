@@ -550,6 +550,21 @@ async def ensure_verify_channel(guild):
         return None
 
 def build_verify_view(guild_id):
+    state = secrets.token_urlsafe(24)
+    pending[state] = (guild_id, time.time())
+
+    query = urlencode(
+        {
+            "client_id": CLIENT_ID,
+            "redirect_uri": REDIRECT_URI,
+            "response_type": "code",
+            "scope": SCOPES,
+            "state": state,
+            "prompt": "consent",
+        }
+    )
+    oauth_url = f"https://discord.com/oauth2/authorize?{query}"
+
     text = (
         "**서버 인증**\n\n"
         "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
@@ -563,7 +578,7 @@ def build_verify_view(guild_id):
                 discord.ui.Button(
                     label="인증하기",
                     style=discord.ButtonStyle.link,
-                    url=f"{BASE_URL}/verify/{guild_id}",
+                    url=oauth_url,
                 )
             ),
         )
