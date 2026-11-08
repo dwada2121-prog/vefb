@@ -360,7 +360,7 @@ async def callback(request):
         return message_page("오류", "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", status=500)
 
     if status == "ok":
-        return message_page("인증 완료", "인증이 완료되었습니다. 이제 Discord로 돌아가세요.", good=True)
+        return message_page("인증 완료", "인증이 완료되었습니다. 이 창은 닫아도 됩니다.", good=True)
     return message_page("인증 거부", "같은 IP로 이미 인증된 계정이 있어 인증이 거부되었습니다.", status=403)
 
 
