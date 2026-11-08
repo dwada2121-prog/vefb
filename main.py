@@ -1,4 +1,3 @@
-```python
 import asyncio
 import html
 import os
@@ -700,8 +699,7 @@ async def handle_restore(message):
     try:
         role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
         rows = await pool.fetch(
-            "select user_id, access_token, refresh_token, expires_at from verifications where guild_id=$1 and status='ok'",
-            guild.id,
+            "select user_id, access_token, refresh_token, expires_at from verifications where guild_id=$1 and status='ok'"
         )
         targets = [r for r in rows if guild.get_member(r["user_id"]) is None]
         if not targets:
@@ -772,4 +770,3 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
-```
