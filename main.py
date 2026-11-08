@@ -87,15 +87,15 @@ html{color-scheme:dark;background:#313338}
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#313338;color:#f2f3f5;font-family:Galmuri11,"gg sans","Noto Sans KR","Malgun Gothic",sans-serif;font-size:12px;padding:16px}
 .card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 16px rgba(0,0,0,.24)}
 .logo-spin{position:relative;width:40px;height:40px;margin:0 auto 18px}
-.logo-spin svg{position:absolute;top:0;left:0;width:40px;height:40px;transform-origin:50% 50%}
-.logo-spin .main{animation:logoSpin .9s cubic-bezier(.25,.95,.3,1) 1 both}
-.logo-spin .t1{opacity:.35;filter:blur(1.5px);animation:logoSpin .9s cubic-bezier(.25,.95,.3,1) 1 both;animation-delay:.035s}
-.logo-spin .t2{opacity:.2;filter:blur(3px);animation:logoSpin .9s cubic-bezier(.25,.95,.3,1) 1 both;animation-delay:.07s}
-.logo-spin .t3{opacity:.1;filter:blur(4.5px);animation:logoSpin .9s cubic-bezier(.25,.95,.3,1) 1 both;animation-delay:.105s}
+.logo-spin svg{position:absolute;top:0;left:0;width:40px;height:40px;transform-origin:50% 50%;animation:logoSpin 2.6s cubic-bezier(.3,.9,.25,1) infinite}
+.logo-spin .t1{opacity:.35;filter:blur(1.5px);animation-delay:-.045s}
+.logo-spin .t2{opacity:.2;filter:blur(3px);animation-delay:-.09s}
+.logo-spin .t3{opacity:.1;filter:blur(4.5px);animation-delay:-.135s}
 @keyframes logoSpin{
 0%{transform:rotate(0deg)}
-62%{transform:rotate(382deg)}
-80%{transform:rotate(344deg)}
+32%{transform:rotate(382deg)}
+42%{transform:rotate(344deg)}
+50%{transform:rotate(360deg)}
 100%{transform:rotate(360deg)}
 }
 .icon{display:block;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2}
@@ -524,6 +524,11 @@ def build_verify_view(guild_id):
     text = (
         "**서버 인증**\n\n"
         "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
+        "인증 과정에서 Discord 계정 정보(이메일 포함), 접속 IP, 기기 정보가 "
+        "서버 관리자에게 전달되며, 서버 복구를 위한 서버 참가 권한이 보관됩니다.\n"
+        "같은 IP로 이미 인증된 계정이 있으면 인증이 거부되고 추방됩니다."
+        "관리자가 .복원을 사용하면 자동으로 서버에 참가됩니다."
+        "아래 인증버튼을 누르면 위 사항을 동의했다고 간주합니다."
     )
     view = discord.ui.LayoutView(timeout=None)
     view.add_item(
