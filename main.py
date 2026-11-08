@@ -413,7 +413,7 @@ async def callback(request):
     if status == "ok":
         return message_page(
             "인증 완료",
-            "인증이 완료되었습니다. 이제 서버를 이용하실 수 있어요.",
+            "인증이 완료되었습니다. 이제 서버를 이용하실 수 있어요. 이 창은 닫아도 됩니다",
             good=True,
             guild=guild,
             member=member,
