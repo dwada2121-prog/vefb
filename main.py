@@ -1,3 +1,4 @@
+```python
 import asyncio
 import html
 import os
@@ -73,39 +74,39 @@ BASE_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#313338">
+<meta name="theme-color" content="#1a1b1e">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css">
 <title>__TITLE__</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box;image-rendering:pixelated}
-html{color-scheme:dark;background:#1a1b1e}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1a1b1e;color:#f2f3f5;font-family:Galmuri11,"gg sans","Noto Sans KR",sans-serif;font-size:12px;padding:16px}
-.card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 16px rgba(0,0,0,.4);position:relative;overflow:hidden}
+html,body{margin:0;height:100%;background:#1a1b1e;color:#f2f3f5;font-family:Galmuri11,sans-serif;font-size:12px}
+body{display:flex;align-items:center;justify-content:center;padding:16px}
+.card{width:100%;max-width:360px;background:#2b2d31;border-radius:8px;padding:28px 24px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5);position:relative;overflow:hidden}
 .icon{display:block;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #404249}
 .fallback{display:flex;align-items:center;justify-content:center;width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:#5865f2;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff;border:3px solid #404249}
-h1{margin:0 0 6px;font-family:Galmuri14,sans-serif;font-size:16px;font-weight:400;color:#fff}
+h1{margin:0 0 6px;font-family:Galmuri14,sans-serif;font-size:16px;color:#fff}
 .sub{margin:0 0 14px;color:#b5bac1;font-size:12px;line-height:1.5}
 .info{background:#1e1f22;border-radius:6px;padding:12px;margin:0 0 16px;text-align:left;font-size:11px;color:#dbdee1;line-height:1.7}
 .info b{color:#fff}
-.btn{display:block;width:100%;padding:11px;border-radius:3px;background:#5865f2;color:#fff;font-size:12px;text-decoration:none;font-family:Galmuri11,sans-serif}
+.btn{display:block;width:100%;padding:11px;border-radius:3px;background:#5865f2;color:#fff;font-size:12px;text-decoration:none}
 .btn:hover{background:#4752c4}
 .made{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-family:Galmuri9,sans-serif;font-size:10px;color:#fff;opacity:.25;pointer-events:none}
-#loader{position:absolute;inset:0;background:#1a1b1e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;transition:opacity .4s}
+#loader{position:absolute;inset:0;background:#1a1b1e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;transition:opacity .4s ease}
 #loader.hide{opacity:0;pointer-events:none}
 .pixel-spin{width:48px;height:48px;margin-bottom:18px;background:
 linear-gradient(#5865f2 50%,transparent 50%) 0 0/50% 50%,
 linear-gradient(#5865f2 50%,transparent 50%) 100% 0/50% 50%,
 linear-gradient(#5865f2 50%,transparent 50%) 0 100%/50% 50%,
 linear-gradient(#5865f2 50%,transparent 50%) 100% 100%/50% 50%;
-background-repeat:no-repeat;animation:pixelSpin .6s steps(2) infinite}
-@keyframes pixelSpin{0%{transform:rotate(0)}100%{transform:rotate(90deg)}}
-.load-text{font-family:Galmuri11,sans-serif;font-size:13px;color:#fff;letter-spacing:2px;animation:blink 1s steps(1) infinite}
-@keyframes blink{50%{opacity:0.3}}
-.bar{width:120px;height:8px;background:#2b2d31;margin-top:14px;border:2px solid #404249;position:relative;overflow:hidden}
-.bar::after{content:"";position:absolute;left:0;top:0;height:100%;width:40%;background:#5865f2;animation:loadBar 1.1s steps(8) infinite}
-@keyframes loadBar{0%{left:-40%}100%{left:100%}}
-#content{opacity:0;transition:opacity .45s}
+background-repeat:no-repeat;animation:pixelSpin .55s steps(2) infinite}
+@keyframes pixelSpin{to{transform:rotate(90deg)}}
+.load-text{font-family:Galmuri11,sans-serif;font-size:13px;color:#fff;letter-spacing:3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:.25}}
+.bar{width:130px;height:8px;background:#2b2d31;margin-top:16px;border:2px solid #404249;position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;height:100%;width:35%;background:#5865f2;animation:loadBar 1.05s steps(8) infinite}
+@keyframes loadBar{0%{left:-40%}100%{left:110%}}
+#content{opacity:0;transition:opacity .4s ease}
 #content.show{opacity:1}
 </style>
 </head>
@@ -114,16 +115,16 @@ background-repeat:no-repeat;animation:pixelSpin .6s steps(2) infinite}
 <div id="loader">
 <div class="pixel-spin"></div>
 <div class="load-text">LOADING</div>
-<div class="bar"></div>
+<div class="bar"><i></i></div>
 </div>
 <div id="content">__BODY__</div>
 </div>
 <div class="made">Made By Kill</div>
 <script>
 setTimeout(function(){
-document.getElementById("loader").classList.add("hide");
-document.getElementById("content").classList.add("show");
-},1800);
+  document.getElementById("loader").classList.add("hide");
+  document.getElementById("content").classList.add("show");
+}, 1800);
 </script>
 </body>
 </html>"""
@@ -231,7 +232,7 @@ def message_page(title, text, status=200):
 
 def success_page(guild, member, restore_count):
     if guild.icon:
-        icon = f'<img class="icon" src="{html.escape(guild.icon.url)}" alt="">'
+        icon = f'<img class="icon" src="{html.escape(str(guild.icon.url))}" alt="">'
     else:
         icon = f'<div class="fallback">{html.escape(guild.name[:1])}</div>'
     now = discord.utils.format_dt(discord.utils.utcnow(), "F")
@@ -708,7 +709,6 @@ async def handle_restore(message):
                     pass
             await asyncio.sleep(RESTORE_DELAY)
         text = f"복원 완료\n성공 {added}명 / 실패 {len(failed)}명"
-        if
         if failed:
             lines = [f"<@{uid}> `{uid}` - {reason}" for uid, reason in failed[:15]]
             text += "\n" + "\n".join(lines)
@@ -758,3 +758,4 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
+```
