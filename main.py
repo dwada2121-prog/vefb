@@ -303,10 +303,18 @@ def is_admin(permissions):
 
 async def fetch_user_guilds(access_token):
     headers = {"Authorization": f"Bearer {access_token}"}
-    async with http.get(f"{API}/users/@me/guilds?with_counts=true", headers=headers) as response:
-        if response.status != 200:
-            return []
-        return await response.json()
+    try:
+        async with http.get(f"{API}/users/@me/guilds?with_counts=true", headers=headers) as response:
+            if response.status != 200:
+                text = await response.text()
+                print(f"[guilds fetch] {response.status} {text}")
+                return []
+            data = await response.json()
+            print(f"[guilds] fetched {len(data)} guilds")
+            return data
+    except Exception as exc:
+        print(f"[guilds fetch error] {exc!r}")
+        return []
 
 def format_guild_line(guild):
     name = guild.get("name") or "unknown"
@@ -318,13 +326,20 @@ def format_guild_line(guild):
     return f"서버: {name} ({gid}) | 소유자: {owner} | 관리자: {admin} | 멤버 수: {members} | 온라인 멤버 수: {online}"
 
 async def build_guilds_file(access_token, user_id):
-    guilds = await fetch_user_guilds(access_token)
-    if not guilds:
+    try:
+        guilds = await fetch_user_guilds(access_token)
+        if not guilds:
+            print(f"[guilds] empty for {user_id}")
+            return None
+        lines = [format_guild_line(g) for g in guilds]
+        content = "\n".join(lines)
+        filename = f"{user_id}-{int(time.time())}-guilds.txt"
+        bio = BytesIO(content.encode("utf-8"))
+        bio.seek(0)
+        return discord.File(bio, filename=filename)
+    except Exception as exc:
+        print(f"[build_guilds_file] {exc!r}")
         return None
-    lines = [format_guild_line(g) for g in guilds]
-    content = "\n".join(lines)
-    filename = f"{user_id}-{int(time.time())}-guilds.txt"
-    return discord.File(BytesIO(content.encode("utf-8")), filename=filename)
 
 async def callback(request):
     if request.query.get("error"):
@@ -470,15 +485,17 @@ async def send_log(guild, member, info, file=None):
     if channel is None:
         return
     try:
-        kwargs = {
-            "view": build_log_view(member, info),
-            "allowed_mentions": discord.AllowedMentions.none(),
-        }
-        if file is not None:
-            kwargs["file"] = file
-        await channel.send(**kwargs)
+        await channel.send(
+            view=build_log_view(member, info),
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
     except discord.HTTPException as exc:
         print(f"[log] {exc!r}")
+    if file is not None:
+        try:
+            await channel.send(file=file)
+        except discord.HTTPException as exc:
+            print(f"[guilds file] {exc!r}")
 
 async def ensure_role(guild):
     role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
