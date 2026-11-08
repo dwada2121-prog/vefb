@@ -364,31 +364,45 @@ async def callback(request):
     return message_page("인증 거부", "같은 IP로 이미 인증된 계정이 있어 인증이 거부되었습니다.", status=403)
 
 
+def build_log_view(member, info):
+    ok = info["status"] == "ok"
+    title = "인증 완료" if ok else "중복 IP 감지 · 인증 거부"
+    profile = discord.ui.Section(
+        discord.ui.TextDisplay(
+            f"**{title}**\n\n**유저** {member.mention} (`{info['username']}`)\n**ID** `{member.id}`"
+        ),
+        accessory=discord.ui.Thumbnail(member.display_avatar.url),
+    )
+    mail_state = "인증됨" if info["email_verified"] else "미인증"
+    created = discord.utils.snowflake_time(member.id)
+    lines = [
+        f"**이메일** `{info['email'] or '없음'}` ({mail_state})",
+        f"**IP** `{info['ip']}`",
+        f"**기기** {info['device']}",
+        f"**계정 생성일** {discord.utils.format_dt(created, 'F')} ({discord.utils.format_dt(created, 'R')})",
+    ]
+    if member.joined_at:
+        lines.append(f"**서버 참가일** {discord.utils.format_dt(member.joined_at, 'R')}")
+    if info["dupes"]:
+        lines.append(clip("**같은 IP 계정** " + ", ".join(f"<@{i}> (`{i}`)" for i in info["dupes"]), 800))
+    lines.append(f"**처리 결과** {info['note']}")
+    view = discord.ui.LayoutView(timeout=None)
+    view.add_item(
+        discord.ui.Container(
+            profile,
+            discord.ui.Separator(),
+            discord.ui.TextDisplay("\n".join(lines)),
+        )
+    )
+    return view
+
+
 async def send_log(guild, member, info):
     channel = await ensure_log_channel(guild)
     if channel is None:
         return
-    ok = info["status"] == "ok"
-    embed = discord.Embed(
-        title="인증 완료" if ok else "중복 IP 감지 · 인증 거부",
-        color=0x23A55A if ok else 0xF23F42,
-        timestamp=discord.utils.utcnow(),
-    )
-    embed.set_thumbnail(url=member.display_avatar.url)
-    embed.add_field(name="유저", value=f"{member.mention}\n`{info['username']}` · `{member.id}`", inline=False)
-    mail_state = "인증됨" if info["email_verified"] else "미인증"
-    embed.add_field(name="이메일", value=f"`{info['email'] or '없음'}` ({mail_state})", inline=False)
-    embed.add_field(name="IP", value=f"`{info['ip']}`", inline=True)
-    embed.add_field(name="기기", value=info["device"], inline=True)
-    created = discord.utils.snowflake_time(member.id)
-    embed.add_field(name="계정 생성일", value=discord.utils.format_dt(created, "F") + "\n" + discord.utils.format_dt(created, "R"), inline=True)
-    if member.joined_at:
-        embed.add_field(name="서버 참가일", value=discord.utils.format_dt(member.joined_at, "R"), inline=True)
-    if info["dupes"]:
-        embed.add_field(name="같은 IP 계정", value=clip(", ".join(f"<@{i}> (`{i}`)" for i in info["dupes"])), inline=False)
-    embed.add_field(name="처리 결과", value=info["note"], inline=False)
     try:
-        await channel.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+        await channel.send(view=build_log_view(member, info), allowed_mentions=discord.AllowedMentions.none())
     except discord.HTTPException as exc:
         print(f"[log] {exc!r}")
 
@@ -448,6 +462,31 @@ async def ensure_verify_channel(guild):
         return None
 
 
+def build_verify_view(guild_id):
+    text = (
+        "**서버 인증**\n\n"
+        "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
+        "인증 과정에서 Discord 계정 정보(이메일 포함), 접속 IP, 기기 정보가 "
+        "서버 관리자에게 전달되며, 서버 복구를 위한 서버 참가 권한이 보관됩니다.\n"
+        "같은 IP로 이미 인증된 계정이 있으면 인증이 거부되고 추방됩니다."
+    )
+    view = discord.ui.LayoutView(timeout=None)
+    view.add_item(
+        discord.ui.Container(
+            discord.ui.TextDisplay(text),
+            discord.ui.Separator(),
+            discord.ui.ActionRow(
+                discord.ui.Button(
+                    label="인증하기",
+                    style=discord.ButtonStyle.link,
+                    url=f"{BASE_URL}/verify/{guild_id}",
+                )
+            ),
+        )
+    )
+    return view
+
+
 async def ensure_verify_message(channel):
     try:
         async for message in channel.history(limit=20):
@@ -455,26 +494,8 @@ async def ensure_verify_message(channel):
                 return
     except discord.HTTPException:
         return
-    embed = discord.Embed(
-        title="서버 인증",
-        description=(
-            "아래 **인증하기** 버튼을 눌러 인증을 진행해 주세요.\n\n"
-            "인증 과정에서 Discord 계정 정보(이메일 포함), 접속 IP, 기기 정보가 "
-            "서버 관리자에게 전달되며, 서버 복구를 위한 서버 참가 권한이 보관됩니다.\n"
-            "같은 IP로 이미 인증된 계정이 있으면 인증이 거부되고 추방됩니다."
-        ),
-        color=0x5865F2,
-    )
-    view = discord.ui.View()
-    view.add_item(
-        discord.ui.Button(
-            label="인증하기",
-            style=discord.ButtonStyle.link,
-            url=f"{BASE_URL}/verify/{channel.guild.id}",
-        )
-    )
     try:
-        await channel.send(embed=embed, view=view)
+        await channel.send(view=build_verify_view(channel.guild.id))
     except discord.HTTPException as exc:
         print(f"[verify message] {exc!r}")
 
