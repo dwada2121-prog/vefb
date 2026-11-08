@@ -97,6 +97,28 @@ DISCORD_LOGO = (
     + "</div>"
 )
 
+PAIR_CSS = """<style>
+.pair{position:relative;width:184px;height:72px;margin:0 auto 16px}
+.pair .pav{position:absolute;top:0;width:72px;height:72px;border-radius:50%;object-fit:cover;background:#5865f2;border:3px solid #3ba55d;display:flex;align-items:center;justify-content:center;font-family:Galmuri14,sans-serif;font-size:22px;color:#fff}
+.pair .srv{left:0}
+.pair .me{left:112px;background:#4e5058;image-rendering:auto}
+.pair .line{position:absolute;left:76px;top:34px;width:32px;height:4px;background:#3ba55d;transform-origin:left center}
+.pair .badge{position:absolute;left:166px;top:50px;width:24px;height:24px;border-radius:50%;background:#3ba55d;border:3px solid #2b2d31;display:flex;align-items:center;justify-content:center}
+.pair .badge svg{width:12px;height:12px}
+#content.show .pair .srv{animation:pairSrv .7s cubic-bezier(.65,0,.35,1) .4s backwards,pairRing .4s ease 1.45s backwards}
+#content.show .pair .line{animation:pairLine .4s ease-out .95s backwards}
+#content.show .pair .me{animation:pairMe .5s cubic-bezier(.34,1.56,.64,1) 1s backwards,pairRing .4s ease 1.45s backwards}
+#content.show .pair .badge{animation:pairBadge .35s cubic-bezier(.34,1.56,.64,1) 1.55s backwards}
+@keyframes pairSrv{from{transform:translateX(56px)}}
+@keyframes pairLine{from{transform:scaleX(0)}}
+@keyframes pairMe{from{opacity:0;transform:scale(.6)}}
+@keyframes pairBadge{from{opacity:0;transform:scale(.3)}}
+@keyframes pairRing{from{border-color:#404249}}
+@media (prefers-reduced-motion:reduce){.pair *{animation:none!important}}
+</style>"""
+
+CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
+
 BASE_HTML = """<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -264,11 +286,17 @@ def message_page(title, text, status=200):
 
 def success_page(guild, member, restore_count):
     if guild.icon:
-        icon = f'<img class="icon" src="{html.escape(str(guild.icon.url))}" alt="">'
+        server = f'<img class="pav srv" src="{html.escape(str(guild.icon.url))}" alt="" style="image-rendering:auto">'
     else:
-        icon = f'<div class="fallback">{html.escape(guild.name[:1])}</div>'
-    body = f"""
-{icon}
+        server = f'<div class="pav srv">{html.escape(guild.name[:1])}</div>'
+    avatar = html.escape(str(member.display_avatar.url))
+    body = PAIR_CSS + f"""
+<div class="pair">
+{server}
+<div class="line"></div>
+<img class="pav me" src="{avatar}" alt="" style="image-rendering:auto">
+<div class="badge">{CHECK_SVG}</div>
+</div>
 <h1>인증 완료</h1>
 <p class="sub">{html.escape(guild.name)}</p>
 <div class="info">
