@@ -1,4 +1,3 @@
-```python
 import asyncio
 import html
 import os
@@ -773,4 +772,3 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
-```
