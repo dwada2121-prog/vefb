@@ -1,3 +1,4 @@
+```python
 import asyncio
 import html
 import os
@@ -614,7 +615,8 @@ def build_verify_view(guild_id):
 async def ensure_verify_message(channel):
     try:
         async for message in channel.history(limit=20):
-            if message.author.id == client.user.id and message.components:
+            if message.author.id == client.user.id:
+                # components 체크 대신 flags로 확인하거나 무조건 있으면 패스
                 return
     except discord.HTTPException:
         return
@@ -771,3 +773,4 @@ async def on_ready():
     print(f"{client.user}")
 
 client.run(TOKEN)
+```
